@@ -20,6 +20,15 @@ const userSchema = new Schema(
         password: {
             type: String,
             required: [true, 'Password is required']
+        },
+        profileImage: {
+            type: String,
+            default: ""
+        },
+        role: {
+            type: String,
+            enum: ['student', 'admin'],
+            default: 'student'
         }
     },
     {

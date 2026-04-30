@@ -18,9 +18,12 @@ const postSchema = new Schema(
             required: true
         },
         featuredImage: {
-            type: String, // String path to the image
-            required: true
+            type: String, // Legacy, kept for backward compatibility
+            required: false // Changed to false to allow new posts to use `images` instead
         },
+        images: [{
+            type: String
+        }],
         status: {
             type: String,
             required: true,
@@ -29,7 +32,27 @@ const postSchema = new Schema(
         userId: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        }
+        },
+        likes: [{
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }],
+        comments: [{
+            user: {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+                required: true
+            },
+            text: {
+                type: String,
+                required: true,
+                trim: true
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }]
     },
     {
         timestamps: true

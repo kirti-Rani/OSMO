@@ -23,10 +23,16 @@ export const registerUser = async (req, res) => {
             return res.status(409).json({message: "User with email already exists"});
         }
 
+        let role = 'student';
+        if (email.endsWith('@college.edu') || email === process.env.ADMIN_EMAIL) {
+            role = 'admin';
+        }
+
         const user = await User.create({
             name,
             email,
-            password
+            password,
+            role
         });
 
         const createdUser = await User.findById(user._id).select("-password -__v");
@@ -113,9 +119,40 @@ export const getCurrentUser = async (req, res) => {
         return res.status(200).json({
             $id: req.user._id,
             name: req.user.name,
-            email: req.user.email
+            email: req.user.email,
+            profileImage: req.user.profileImage || "",
+            role: req.user.role || 'student'
         });
     } catch (error) {
          return res.status(500).json({message: error.message});
+    }
+};
+
+export const updateProfileImage = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+        
+        const profileImage = req.file.filename;
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { $set: { profileImage } },
+            { new: true }
+        ).select("-password -__v");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+            $id: user._id,
+            name: user.name,
+            email: user.email,
+            profileImage: user.profileImage,
+            role: user.role || 'student'
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 };
