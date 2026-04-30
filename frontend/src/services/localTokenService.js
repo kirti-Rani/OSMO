@@ -49,9 +49,9 @@ export const localTokenService = {
     };
   },
 
-  updateTokenStatus: async (tokenId, status, counter) => {
+  updateTokenStatus: async (tokenId, status, counter, extraData = {}) => {
     const tokens = localTokenService.getTokens().map(t => 
-      t.id === tokenId ? { ...t, status, ...(counter ? { counter } : {}) } : t
+      t.id === tokenId ? { ...t, status, ...(counter ? { counter } : {}), ...extraData } : t
     );
     localTokenService.saveTokens(tokens);
   }

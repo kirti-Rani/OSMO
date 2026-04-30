@@ -49,6 +49,26 @@ export class AuthService {
             console.log("Appwrite serive::logout::error", error.response?.data?.message || error.message);
         }
     }
+
+    async uploadProfileImage(file) {
+        try {
+            const formData = new FormData();
+            formData.append("image", file);
+            
+            const response = await axios.post(`${API_URL}/profile-image`, formData, {
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            return response.data;
+        } catch (error) {
+            if (error.response?.data?.message) {
+                throw new Error(error.response.data.message);
+            }
+            throw error;
+        }
+    }
 }
 
 const authService = new AuthService();

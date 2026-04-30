@@ -26,31 +26,57 @@ export default function PostForm({ post }) {
 
     const submit = async (data) => {
         if (post) {
-            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+            let newImages = post.images || (post.featuredImage ? [post.featuredImage] : []);
+            let newFeaturedImage = post.featuredImage;
 
-            if (file) {
-                appwriteService.deleteFile(post.featuredImage);
+            if (data.images && data.images.length > 0) {
+                const files = Array.from(data.images).slice(0, 5);
+                const response = await appwriteService.uploadImages(files);
+                if (response && response.fileIds) {
+                    newImages = response.fileIds;
+                    newFeaturedImage = response.$id;
+
+                    if (post.featuredImage) {
+                        appwriteService.deleteFile(post.featuredImage);
+                    }
+                    if (post.images && post.images.length > 0) {
+                        post.images.forEach(id => {
+                            if (id !== post.featuredImage) appwriteService.deleteFile(id);
+                        });
+                    }
+                }
             }
 
             const dbPost = await appwriteService.updatePost(post.$id, {
                 ...data,
-                featuredImage: file ? file.$id : undefined,
+                featuredImage: newFeaturedImage,
+                images: newImages,
             });
 
             if (dbPost) {
                 navigate(`/post/${dbPost.$id}`);
             }
         } else {
-            const file = await appwriteService.uploadFile(data.image[0]);
-
-            if (file) {
-                const fileId = file.$id;
-                data.featuredImage = fileId;
-                const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id });
-
-                if (dbPost) {
-                    navigate(`/post/${dbPost.$id}`);
+            let newImages = [];
+            let newFeaturedImage = undefined;
+            if (data.images && data.images.length > 0) {
+                const files = Array.from(data.images).slice(0, 5);
+                const response = await appwriteService.uploadImages(files);
+                if (response && response.fileIds) {
+                    newImages = response.fileIds;
+                    newFeaturedImage = response.$id;
                 }
+            }
+
+            const dbPost = await appwriteService.createPost({ 
+                ...data, 
+                featuredImage: newFeaturedImage,
+                images: newImages,
+                userId: userData.$id 
+            });
+
+            if (dbPost) {
+                navigate(`/post/${dbPost.$id}`);
             }
         }
     };
@@ -164,20 +190,24 @@ export default function PostForm({ post }) {
             </div>
             <div className="w-1/3 px-2">
                 <Input
-                    label="Featured Image :"
+                    label="Images (Max 5) :"
                     type="file"
+                    multiple
                     className="mb-4 bg-white/95 text-slate-800"
                     labelClassName="text-teal-50 drop-shadow-sm"
                     accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("image", { required: !post })}
+                    {...register("images", { required: !post })}
                 />
-                {post && (
-                    <div className="w-full mb-4">
-                        <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
-                            alt={post.title}
-                            className="rounded-lg shadow-lg border border-white/20"
-                        />
+                {post && (post.images?.length > 0 || post.featuredImage) && (
+                    <div className="w-full mb-4 flex gap-2 overflow-x-auto pb-2">
+                        {(post.images?.length > 0 ? post.images : [post.featuredImage]).map((img, idx) => (
+                            <img
+                                key={idx}
+                                src={appwriteService.getFilePreview(img)}
+                                alt={`post preview ${idx}`}
+                                className="rounded-lg shadow-lg border border-white/20 h-24 object-cover flex-shrink-0"
+                            />
+                        ))}
                     </div>
                 )}
                 <Select

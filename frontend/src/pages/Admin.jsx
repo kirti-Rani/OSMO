@@ -77,6 +77,15 @@ function StatCard({ label, value, accent }) {
 
 function TokenRow({ token, isOwn, onStatusChange }) {
   const [open, setOpen] = useState(false);
+  const [callTime, setCallTime] = useState(token.callTime || "");
+
+  const handleTimeChange = (e) => {
+    const val = e.target.value;
+    setCallTime(val);
+    if (token.status === "calling") {
+      onStatusChange(token.id, "calling", token.counter, { callTime: val });
+    }
+  };
 
   return (
     <div
@@ -185,7 +194,7 @@ function TokenRow({ token, isOwn, onStatusChange }) {
             {["calling", "serving"].includes(token.status) && (
               <select
                 defaultValue={token.counter ?? ""}
-                onChange={(e) => onStatusChange(token.id, token.status, e.target.value)}
+                onChange={(e) => onStatusChange(token.id, token.status, e.target.value, { callTime })}
                 style={{
                   fontSize: 12,
                   padding: "5px 10px",
@@ -201,6 +210,24 @@ function TokenRow({ token, isOwn, onStatusChange }) {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
+            )}
+            
+            {token.status === "calling" && (
+               <input 
+                  type="time" 
+                  value={callTime}
+                  onChange={handleTimeChange}
+                  placeholder="Arrival time"
+                  style={{
+                    fontSize: 12,
+                    padding: "5px 10px",
+                    borderRadius: 6,
+                    border: "1px solid #e0e0e0",
+                    background: "white",
+                    color: "#555",
+                    fontFamily: "inherit",
+                  }}
+               />
             )}
           </div>
         </div>
@@ -471,24 +498,21 @@ export default function TokenQueueSystem() {
   };
 
   useEffect(() => {
-    const verifiedName = location.state?.verificationName;
-
-    if (verifiedName) {
-      setAdminName(verifiedName);
-    } else {
-      authService.getCurrentUser().then((user) => {
-        if (user) {
-          setAdminName(user.name || user.email.split('@')[0] || "Admin User");
+    authService.getCurrentUser().then((user) => {
+      if (user) {
+        setAdminName(user.name || user.email.split('@')[0] || "Admin User");
+        if (user.profileImage) {
+          setProfilePhoto(`/temp/${user.profileImage}`);
         }
-      });
-    }
+      }
+    });
 
     const unsub = tokenService.subscribeToTokens(setTokens);
     return unsub;
-  }, [location.state]);
+  }, []);
 
-  const handleStatusChange = useCallback(async (tokenId, status, counter) => {
-    await tokenService.updateTokenStatus(tokenId, status, counter);
+  const handleStatusChange = useCallback(async (tokenId, status, counter, extraData = {}) => {
+    await tokenService.updateTokenStatus(tokenId, status, counter, extraData);
   }, []);
 
   const handleNewToken = useCallback(({ name, service }) => {
@@ -523,13 +547,9 @@ export default function TokenQueueSystem() {
 
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end">
-            <input
-              type="text"
-              value={adminName}
-              onChange={(e) => setAdminName(e.target.value)}
-              placeholder="Your name"
-              className="text-sm font-semibold text-gray-800 leading-tight text-right bg-transparent outline-none focus:border-b focus:border-gray-300 w-36 px-1 transition-all"
-            />
+            <div className="text-sm font-semibold text-gray-800 leading-tight text-right w-36 px-1 truncate">
+              {adminName}
+            </div>
             <span className="text-[10px] font-bold text-gray-100 bg-[#111] px-2 rounded-full mt-0.5 tracking-wide">ADMIN</span>
           </div>
 

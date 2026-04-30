@@ -15,6 +15,7 @@ import AllPosts from "./pages/AllPosts";
 import Token from "./pages/Token";
 import Admin from "./pages/Admin";
 import Student from "./pages/Student";
+import Profile from "./pages/Profile";
 
 const router = createBrowserRouter([
   {
@@ -82,7 +83,21 @@ const router = createBrowserRouter([
         },
         {
             path: "/post/:slug",
-            element: <Post />,
+            element: (
+                <AuthLayout authentication>
+                    {" "}
+                    <Post />
+                </AuthLayout>
+            ),
+        },
+        {
+            path: "/profile",
+            element: (
+                <AuthLayout authentication>
+                    {" "}
+                    <Profile />
+                </AuthLayout>
+            ),
         },
     ],
 },

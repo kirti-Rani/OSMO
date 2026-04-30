@@ -4,10 +4,10 @@ import axios from "axios";
 const API_URL = "/api/posts";
 
 export class Service {
-    async createPost({ title, slug, content, featuredImage, status, userId }) {
+    async createPost({ title, slug, content, featuredImage, images, status, userId }) {
         try {
             const response = await axios.post(API_URL, {
-                title, slug, content, featuredImage, status, userId
+                title, slug, content, featuredImage, images, status, userId
             }, { withCredentials: true });
             return response.data;
         } catch (error) {
@@ -16,10 +16,10 @@ export class Service {
         }
     }
 
-    async updatePost(slug, { title, content, featuredImage, status }) {
+    async updatePost(slug, { title, content, featuredImage, images, status }) {
         try {
             const response = await axios.patch(`${API_URL}/${slug}`, {
-                title, content, featuredImage, status
+                title, content, featuredImage, images, status
             }, { withCredentials: true });
             // Mimic appwrite behavior of returning updated doc
             return response.data;
@@ -58,13 +58,33 @@ export class Service {
             return false;
         }
     }
+
+    async toggleLike(slug) {
+        try {
+            const response = await axios.post(`${API_URL}/${slug}/like`, {}, { withCredentials: true });
+            return response.data;
+        } catch (error) {
+            console.log("Appwrite serive :: toggleLike :: error", error);
+            return false;
+        }
+    }
+
+    async addComment(slug, text) {
+        try {
+            const response = await axios.post(`${API_URL}/${slug}/comment`, { text }, { withCredentials: true });
+            return response.data;
+        } catch (error) {
+            console.log("Appwrite serive :: addComment :: error", error);
+            return false;
+        }
+    }
  
 // file upload
 
     async uploadFile(file) {
         try {
             const formData = new FormData();
-            formData.append("file", file);
+            formData.append("images", file); // Changed to 'images' to match the new route
             
             const response = await axios.post(`${API_URL}/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -73,6 +93,24 @@ export class Service {
             return response.data;
         } catch (error) {
             console.log("Appwrite serive :: uploadFile :: error", error);
+            return false;
+        }
+    }
+
+    async uploadImages(files) {
+        try {
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append("images", files[i]);
+            }
+            
+            const response = await axios.post(`${API_URL}/upload`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                withCredentials: true
+            });
+            return response.data; // Should return { $id, fileIds: [...] }
+        } catch (error) {
+            console.log("Appwrite serive :: uploadImages :: error", error);
             return false;
         }
     }

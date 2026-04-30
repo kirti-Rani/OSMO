@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import authService from '../appwrite/config'
+import authService from '../appwrite/auth'
 import appLogo from '../assets/Screenshot 2026-04-14 140654.png'
 
 function Token() {
   const navigate = useNavigate();
   const [activeForm, setActiveForm] = useState(null);
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,15 +16,22 @@ function Token() {
     setError('');
     setLoading(true);
     try {
-      // Authenticate using the central authService to verify it matches login password
       const session = await authService.login({ email, password });
-      if (session) {
-        navigate(activeForm === 'student' ? '/student' : '/admin', { state: { verificationName: name } });
+      if (session && session.user) {
+        if (activeForm === 'admin' && session.user.role !== 'admin') {
+          setError('Access Denied: Organization members only.');
+          return;
+        }
+        if (activeForm === 'student' && session.user.role === 'admin') {
+          setError('Access Denied: Admins must use the Admin portal.');
+          return;
+        }
+        navigate(activeForm === 'student' ? '/student' : '/admin');
       }
     } catch (err) {
       // Handle the specific Appwrite case where the user is already logged in
       if (err.message && err.message.toLowerCase().includes('session is active')) {
-        navigate(activeForm === 'student' ? '/student' : '/admin', { state: { verificationName: name } });
+        navigate(activeForm === 'student' ? '/student' : '/admin');
       } else {
         setError(err.message || 'Invalid credentials');
       }
@@ -93,17 +99,6 @@ function Token() {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Full Name</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400"
-              />
-            </div>
             <div>
               <label className="text-sm font-semibold text-gray-700 block mb-1">Registered Email</label>
               <input

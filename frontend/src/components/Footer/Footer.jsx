@@ -9,8 +9,14 @@ function Footer() {
                 <div className="-m-6 flex flex-wrap">
                     <div className="w-full p-6 md:w-1/2 lg:w-5/12">
                         <div className="flex h-full flex-col justify-between">
-                            <div className="mb-4 inline-flex items-center text-white">
-                                <Logo width="100px" />
+                            <div className="mb-4 flex flex-col text-white">
+                                <div className="inline-flex items-center">
+                                    <Logo width="100px" />
+                                    <span className="ml-3 text-2xl font-bold tracking-wider">OSMO</span>
+                                </div>
+                                <p className="mt-4 text-sm text-slate-400 max-w-xs leading-relaxed">
+                                    Organized System for Management and Outreach
+                                </p>
                             </div>
                             <div>
                                 <p className="text-sm text-slate-500">

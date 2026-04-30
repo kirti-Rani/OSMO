@@ -14,27 +14,23 @@ function Student() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const verifiedName = location.state?.verificationName;
-
-    if (verifiedName) {
-      setUserName(verifiedName);
-    } else {
-      authService.getCurrentUser().then((user) => {
-        if (user) {
-          setUserName(user.name || user.email.split('@')[0] || "Student");
+    authService.getCurrentUser().then((user) => {
+      if (user) {
+        setUserName(user.name || user.email.split('@')[0] || "Student");
+        if (user.profileImage) {
+          setProfilePhoto(`/temp/${user.profileImage}`);
         }
-      });
-    }
+      }
+    });
 
     return localTokenService.subscribeToTokens(setTokens);
-  }, [location.state]);
+  }, []);
 
-  // Derived state to find if there's currently an active token
-  const activeToken = tokens.find(t => t.status === 'pending' || t.status === 'serving');
-  const pastTokens = tokens.filter(t => t.status === 'cancelled' || t.status === 'done');
+  // Filter tokens to show only the current student's tokens
+  const studentTokens = tokens.filter(t => t.studentName === userName);
 
   const handleRequestToken = async () => {
-    if (!serviceType || isSubmitting || activeToken) return;
+    if (!serviceType || isSubmitting) return;
     setIsSubmitting(true);
 
     // Fake a brief network delay
@@ -69,13 +65,9 @@ function Student() {
 
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end">
-            <input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Your name"
-              className="text-sm font-semibold text-gray-800 leading-tight text-right bg-transparent outline-none focus:border-b focus:border-teal-400 w-36 px-1 transition-all"
-            />
+            <div className="text-sm font-semibold text-gray-800 leading-tight text-right w-36 px-1 truncate">
+              {userName}
+            </div>
             <span className="text-[10px] font-bold text-teal-700 bg-teal-100 px-2 rounded-full mt-0.5 tracking-wide shadow-sm">STUDENT</span>
           </div>
 
@@ -133,21 +125,12 @@ function Student() {
             </div>
 
             <button
-              disabled={!!activeToken || isSubmitting}
+              disabled={isSubmitting}
               onClick={handleRequestToken}
-              className={`w-full py-4 rounded-xl font-bold text-[15px] transition-all duration-300 flex items-center justify-center ${activeToken
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-                : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-400 hover:to-cyan-500 shadow-xl shadow-teal-500/30'
-                }`}
+              className={`w-full py-4 rounded-xl font-bold text-[15px] transition-all duration-300 flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-400 hover:to-cyan-500 shadow-xl shadow-teal-500/30`}
             >
-              {activeToken ? 'Token Already Active' : isSubmitting ? 'Requesting...' : 'Request Token'}
+              {isSubmitting ? 'Requesting...' : 'Request Token'}
             </button>
-
-            {activeToken && (
-              <p className="text-[#e27300] font-semibold text-[13.5px] text-center mt-5">
-                You already have an active token ({activeToken.id})
-              </p>
-            )}
           </div>
 
           {/* Right panel: Token History */}
@@ -156,12 +139,12 @@ function Student() {
             <p className="text-gray-500 text-sm mb-7">Track your current and past tokens</p>
 
             <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 rounded-xl">
-              {tokens.length === 0 ? (
+              {studentTokens.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-2xl w-full">
                   <p className="text-gray-400 font-medium text-sm">No tokens requested yet.</p>
                 </div>
               ) : (
-                tokens.map((token, index) => (
+                studentTokens.map((token, index) => (
                   <div key={index} className={`border rounded-2xl p-5 shadow-sm relative transition-all duration-300 hover:shadow-md ${token.status === 'pending' ? 'border-teal-200 bg-teal-50/60' : 'border-gray-100 bg-gray-50/50'}`}>
                     <div className="flex items-center gap-3.5 mb-2.5">
                       <span className="text-[20px] font-bold text-black">{token.id}</span>
@@ -175,11 +158,18 @@ function Student() {
                       </span>
                       <span className="ml-auto text-[12px] text-gray-400 font-medium">{token.date}</span>
                     </div>
-                    <h3 className="text-gray-600 text-[14px] mb-2 font-semibold">{token.service}</h3>
+                    <h3 className="text-gray-600 text-[14px] mb-2 font-semibold">{token.serviceType || token.service}</h3>
                     {token.status === 'pending' && (
                       <div className="text-gray-400 text-[13px] flex items-center gap-1.5 font-medium mt-3 border-t border-gray-100 pt-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                         Est. Wait: {token.wait}
+                      </div>
+                    )}
+                    
+                    {token.status === 'calling' && token.callTime && (
+                      <div className="text-blue-600 text-[13px] flex items-center gap-1.5 font-medium mt-3 border-t border-blue-100 pt-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                        Please arrive by: <span className="font-bold">{token.callTime}</span>
                       </div>
                     )}
 
