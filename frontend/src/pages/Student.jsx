@@ -26,8 +26,10 @@ function Student() {
     return localTokenService.subscribeToTokens(setTokens);
   }, []);
 
-  // Filter tokens to show only the current student's tokens
-  const studentTokens = tokens.filter(t => t.studentName === userName);
+  // Filter tokens to show only the current student's tokens and sort them serial wise (ascending)
+  const studentTokens = tokens
+    .filter(t => t.studentName === userName)
+    .sort((a, b) => a.tokenNumber - b.tokenNumber);
 
   const handleRequestToken = async () => {
     if (!serviceType || isSubmitting) return;
@@ -147,7 +149,7 @@ function Student() {
                 studentTokens.map((token, index) => (
                   <div key={index} className={`border rounded-2xl p-5 shadow-sm relative transition-all duration-300 hover:shadow-md ${token.status === 'pending' ? 'border-teal-200 bg-teal-50/60' : 'border-gray-100 bg-gray-50/50'}`}>
                     <div className="flex items-center gap-3.5 mb-2.5">
-                      <span className="text-[20px] font-bold text-black">{token.id}</span>
+                      <span className="text-[20px] font-bold text-black">#{token.tokenNumber}</span>
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm inline-flex items-center
                            ${token.status === 'pending' ? 'border-gray-200 text-[#111] bg-white' :
                           token.status === 'cancelled' ? 'border-red-100 text-red-600 bg-red-50' :
