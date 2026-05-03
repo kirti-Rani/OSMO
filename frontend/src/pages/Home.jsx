@@ -9,8 +9,10 @@ function Home() {
 
     useEffect(() => {
         appwriteService.getPosts().then((posts) => {
-            if (posts) {
+            if (posts && posts.documents) {
                 setPosts(posts.documents)
+            } else {
+                setPosts([])
             }
         })
     }, [])

@@ -6,8 +6,10 @@ function AllPosts() {
     const [posts, setposts] = useState([])
     useEffect(() => {
         appwriteService.getPosts().then((posts) => {
-            if (posts) {
+            if (posts && posts.documents) {
                 setposts(posts.documents)
+            } else {
+                setposts([])
             }
         })
     }, [])
