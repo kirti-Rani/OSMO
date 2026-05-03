@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://<YOUR_DEPLOYED_BACKEND_URL>/api/:path*"
+    },
+    {
+      "source": "/temp/:path*",
+      "destination": "https://<YOUR_DEPLOYED_BACKEND_URL>/temp/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
