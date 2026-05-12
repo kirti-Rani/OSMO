@@ -14,7 +14,7 @@ export default function RTE({name, control, label, defaultValue ="", labelClassN
     control={control}
     render={({field: {onChange}}) => (
         <Editor
-        apiKey='no-api-key'
+        apiKey={conf.tinymceApiKey}
         initialValue={defaultValue}
         init={{
             initialValue: defaultValue,

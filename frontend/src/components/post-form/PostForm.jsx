@@ -196,7 +196,7 @@ export default function PostForm({ post }) {
                     className="mb-4 bg-white/95 text-slate-800"
                     labelClassName="text-teal-50 drop-shadow-sm"
                     accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("images", { required: !post })}
+                    {...register("images")}
                 />
                 {post && (post.images?.length > 0 || post.featuredImage) && (
                     <div className="w-full mb-4 flex gap-2 overflow-x-auto pb-2">
