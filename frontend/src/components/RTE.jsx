@@ -1,56 +1,50 @@
-import React from 'react'
-import {Editor } from '@tinymce/tinymce-react';
-import {Controller } from 'react-hook-form';
-
-import conf from '../conf/conf.js';
+import React from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { Controller } from 'react-hook-form';
 
 export default function RTE({name, control, label, defaultValue ="", labelClassName = "text-slate-800"}) {
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+      ['link', 'image', 'video'],
+      ['clean'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }]
+    ],
+  };
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video',
+    'color', 'background', 'align'
+  ];
+
   return (
-    <div className='w-full'> 
-    {label && <label className={`inline-block mb-1 pl-1 font-semibold tracking-wide ${labelClassName}`}>{label}</label>}
+    <div className='w-full mb-12'> 
+      {label && <label className={`inline-block mb-1 pl-1 font-semibold tracking-wide ${labelClassName}`}>{label}</label>}
 
-    <Controller
-    name={name || "content"}
-    control={control}
-    render={({field: {onChange}}) => (
-        <Editor
-        apiKey={conf.tinymceApiKey}
-        initialValue={defaultValue}
-        init={{
-            initialValue: defaultValue,
-            height: 500,
-            menubar: true,
-            plugins: [
-                "image",
-                "advlist",
-                "autolink",
-                "lists",
-                "link",
-                "image",
-                "charmap",
-                "preview",
-                "anchor",
-                "searchreplace",
-                "visualblocks",
-                "code",
-                "fullscreen",
-                "insertdatetime",
-                "media",
-                "table",
-                "code",
-                "help",
-                "wordcount",
-                "anchor",
-            ],
-            toolbar:
-            "undo redo | blocks | image | bold italic forecolor | alignleft aligncenter bold italic forecolor |alignleft aligncenter alignright alignjustify | bullist numlist outdent indent |removeformat | help",
-            content_style: "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }"
-        }}
-        onEditorChange={onChange}
-        />
-    )}
-    />
-
-     </div>
+      <Controller
+        name={name || "content"}
+        control={control}
+        defaultValue={defaultValue}
+        render={({field: {onChange, value}}) => (
+          <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
+            <ReactQuill 
+              theme="snow" 
+              value={value || defaultValue} 
+              onChange={onChange}
+              modules={modules}
+              formats={formats}
+              className="h-[400px] mb-10"
+            />
+          </div>
+        )}
+      />
+    </div>
   )
 }
