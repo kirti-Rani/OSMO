@@ -46,9 +46,14 @@ function Profile() {
     );
   }
 
-  const profileImageUrl = userData.profileImage 
-    ? `/temp/${userData.profileImage}` 
-    : null;
+  let profileImageUrl = null;
+  if (userData.profileImage) {
+      if (userData.profileImage.startsWith('http')) {
+          profileImageUrl = userData.profileImage;
+      } else {
+          profileImageUrl = `/temp/${userData.profileImage}`;
+      }
+  }
 
   return (
     <div className="w-full py-12 min-h-[80vh] bg-gray-50 flex justify-center">

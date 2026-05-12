@@ -128,13 +128,22 @@ export const getCurrentUser = async (req, res) => {
     }
 };
 
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+
 export const updateProfileImage = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
         }
         
-        const profileImage = req.file.filename;
+        const localFilePath = req.file.path;
+        const uploadResult = await uploadOnCloudinary(localFilePath);
+        
+        if (!uploadResult) {
+            return res.status(500).json({ message: "Error uploading file to Cloudinary" });
+        }
+
+        const profileImage = uploadResult.secure_url;
         const user = await User.findByIdAndUpdate(
             req.user._id,
             { $set: { profileImage } },

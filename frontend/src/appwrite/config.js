@@ -127,6 +127,7 @@ export class Service {
 
     getFilePreview(fileId) {
         if (!fileId) return "";
+        if (fileId.startsWith("http")) return fileId;
         return `/temp/${fileId}`;
     }
 }

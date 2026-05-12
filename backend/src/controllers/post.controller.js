@@ -118,35 +118,66 @@ export const getPosts = async (req, res) => {
     }
 };
 
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+
 // Upload File
 export const uploadFile = async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
             if (req.file) {
-                return res.status(200).json({ $id: req.file.filename, fileIds: [req.file.filename] });
+                const uploadResult = await uploadOnCloudinary(req.file.path);
+                if (!uploadResult) {
+                    return res.status(500).json({ message: "Error uploading file to Cloudinary" });
+                }
+                // Return secure_url instead of filename
+                return res.status(200).json({ $id: uploadResult.secure_url, fileIds: [uploadResult.secure_url] });
             }
             return res.status(400).json({ message: "No file uploaded" });
         }
         
-        const fileIds = req.files.map(f => f.filename);
+        const uploadPromises = req.files.map(f => uploadOnCloudinary(f.path));
+        const uploadResults = await Promise.all(uploadPromises);
+        
+        const fileUrls = uploadResults.filter(r => r !== null).map(r => r.secure_url);
+        
+        if (fileUrls.length === 0) {
+             return res.status(500).json({ message: "Error uploading files to Cloudinary" });
+        }
+        
         // Return both $id (for backward compatibility) and fileIds
-        return res.status(200).json({ $id: fileIds[0], fileIds });
+        return res.status(200).json({ $id: fileUrls[0], fileIds: fileUrls });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 };
 
-// Delete File (Local implementation)
+// Delete File (Local implementation -> Cloudinary)
 export const deleteFile = async (req, res) => {
     try {
         const { fileId } = req.params;
-        const filePath = path.resolve(`./public/temp/${fileId}`);
         
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        // Note: With Cloudinary, fileId is a full URL.
+        // We need to extract the publicId from the URL to delete it.
+        // Example URL: https://res.cloudinary.com/demo/image/upload/v1612345678/sample.jpg
+        // Public ID is usually 'sample'
+        
+        let publicId = fileId;
+        if (fileId.includes('res.cloudinary.com')) {
+            const parts = fileId.split('/');
+            const filenameWithExt = parts[parts.length - 1];
+            publicId = filenameWithExt.split('.')[0];
+        } else {
+            // It might be a local file ID from old data. Fallback to fs.unlink
+            const filePath = path.resolve(`./public/temp/${fileId}`);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+            return res.status(200).json({ message: "Local file deleted" });
         }
+        
+        await deleteFromCloudinary(publicId);
 
-        return res.status(200).json({ message: "File deleted" });
+        return res.status(200).json({ message: "File deleted from Cloudinary" });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
