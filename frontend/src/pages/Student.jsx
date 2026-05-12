@@ -18,7 +18,7 @@ function Student() {
       if (user) {
         setUserName(user.name || user.email.split('@')[0] || "Student");
         if (user.profileImage) {
-          setProfilePhoto(`/temp/${user.profileImage}`);
+          setProfilePhoto(user.profileImage.startsWith('http') ? user.profileImage : `/temp/${user.profileImage}`);
         }
       }
     });

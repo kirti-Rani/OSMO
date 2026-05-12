@@ -502,7 +502,7 @@ export default function TokenQueueSystem() {
       if (user) {
         setAdminName(user.name || user.email.split('@')[0] || "Admin User");
         if (user.profileImage) {
-          setProfilePhoto(`/temp/${user.profileImage}`);
+          setProfilePhoto(user.profileImage.startsWith('http') ? user.profileImage : `/temp/${user.profileImage}`);
         }
       }
     });
