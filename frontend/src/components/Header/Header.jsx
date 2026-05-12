@@ -72,7 +72,7 @@ function Header() {
                   <span className="px-2">Profile</span>
                   <div className="w-9 h-9 rounded-full bg-slate-800 overflow-hidden border-2 border-transparent group-hover:border-teal-400 flex items-center justify-center shadow-sm shrink-0">
                     {userData?.profileImage ? (
-                      <img src={`/temp/${userData.profileImage}`} alt="Profile" className="w-full h-full object-cover" />
+                      <img src={userData.profileImage.startsWith('http') ? userData.profileImage : `/temp/${userData.profileImage}`} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
