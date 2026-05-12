@@ -9,7 +9,11 @@
             "entrypoint": "backend",
             "routePrefix": "/_/backend"
         }
-    }
+    },
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "https://osmo-4ws7.onrender.com/api/:path*"
+        }
+    ]
 }
-
-
